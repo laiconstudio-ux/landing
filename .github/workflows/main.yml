@@ -1,0 +1,45 @@
+name: Generar Landing Cliente
+on:
+  workflow_dispatch:
+    inputs:
+      NOMBRE_MARCA:
+        description: 'Nombre del negocio'
+        required: true
+      SLUG:
+        description: 'Carpeta del cliente'
+        required: true
+      COLOR_PRIMARIO:
+        description: 'Color HEX principal'
+      COLOR_FONDO:
+        description: 'Color de fondo'
+      URL_LOGO:
+        description: 'Link del logo'
+      TELEFONO_WA:
+        description: 'WhatsApp'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v3
+
+      - name: Crear carpeta del cliente
+        run: mkdir -p clientes/${{ github.event.inputs.SLUG }}
+
+      - name: Construir HTML personalizado
+        run: |
+          sed -e "s|{{NOMBRE_MARCA}}|${{ github.event.inputs.NOMBRE_MARCA }}|g" \
+              -e "s|{{COLOR_PRIMARIO}}|${{ github.event.inputs.COLOR_PRIMARIO }}|g" \
+              -e "s|{{COLOR_FONDO}}|${{ github.event.inputs.COLOR_FONDO }}|g" \
+              -e "s|{{URL_LOGO}}|${{ github.event.inputs.URL_LOGO }}|g" \
+              -e "s|{{TELEFONO_WA}}|${{ github.event.inputs.TELEFONO_WA }}|g" \
+              template.html > clientes/${{ github.event.inputs.SLUG }}/index.html
+
+      - name: Subir cambios a GitHub
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git add .
+          git commit -m "Nueva landing generada: ${{ github.event.inputs.NOMBRE_MARCA }}"
+          git push
